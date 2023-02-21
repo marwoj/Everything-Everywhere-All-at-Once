@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class MvcApplication
 
 fun main(args: Array<String>) {
-	runApplication<MvcApplication>(*args)
+    runApplication<MvcApplication>(*args)
 }
