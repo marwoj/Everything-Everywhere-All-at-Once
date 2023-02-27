@@ -1,11 +1,11 @@
 package eeaao
 
-import eeaao.ActivitiesScenario.getActivities
-import eeaao.ActivitiesScenario.http
+import eeaao.Scenario.activitiesScenario
+import eeaao.Scenario.http
 import io.gatling.javaapi.core.Simulation
 
 class CoroutinesSimulation : Simulation() {
     init {
-        setUp(getActivities(scenario = "Coroutines")).protocols(http(8082))
+        setUp(activitiesScenario(mode = "Coroutines")).protocols(http(8082))
     }
 }
