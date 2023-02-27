@@ -1,29 +1,43 @@
 package com.marwoj.eeaao.dbsetup
 
+import com.marwoj.eeaao.dbsetup.ActivityIdGenerator.generateActivityIds
+import com.marwoj.eeaao.dbsetup.MongoConfig.activities
+import com.marwoj.eeaao.dbsetup.MongoConfig.authors
+import com.marwoj.eeaao.dbsetup.Simulation.activitiesPerAuthor
+import com.marwoj.eeaao.dbsetup.Simulation.authorsNumber
 import com.marwoj.eeaao.model.Activity
-import com.mongodb.MongoClientSettings.getDefaultCodecRegistry
-import com.mongodb.client.MongoClients
-import com.mongodb.client.MongoCollection
-import com.mongodb.client.MongoDatabase
-import com.mongodb.client.model.Indexes
-import org.bson.codecs.configuration.CodecProvider
-import org.bson.codecs.configuration.CodecRegistries.fromProviders
-import org.bson.codecs.configuration.CodecRegistries.fromRegistries
-import org.bson.codecs.configuration.CodecRegistry
-import org.bson.codecs.pojo.PojoCodecProvider
+import com.marwoj.eeaao.model.Author
+import org.bson.Document
+
+
+object Simulation {
+    const val authorsNumber = 20_000 // TODO update if required
+    const val activitiesPerAuthor = 5  // TODO update if required
+}
 
 
 fun main() {
-    val uri = "mongodb://localhost:27017"
-    val pojoCodecProvider: CodecProvider = PojoCodecProvider.builder().automatic(true).build()
-    val pojoCodecRegistry: CodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider))
+    activities.deleteMany(Document())
+    authors.deleteMany(Document())
 
-    val mongoClient = MongoClients.create(uri)
+    (1..authorsNumber)
+        .map { authorId -> Author(id = authorId.toString(), firstName = "Jane-$authorId", lastName = "Doe-$authorId") }
+        .let { authors.insertMany(it) }
 
-    val database: MongoDatabase = mongoClient.getDatabase("eeaao").withCodecRegistry(pojoCodecRegistry)
-    val collection: MongoCollection<Activity> = database.getCollection("activity", Activity::class.java)
 
-    collection.insertOne(Activity(authorId = "123", reporterId = "123"))
+    generateActivityIds(authorsNumber = authorsNumber, activitiesPerAuthor = activitiesPerAuthor)
+        .mapIndexed { index, ids ->
+            Activity(
+                id = index.toString(), authorId = ids.authorId,
+                title = "Activity: $index, Author: ${ids.authorId}, Author activity no.: ${ids.authorActivityNo}",
+            )
+        }
+        .chunked(50_000)
+        .forEach { activitiesToAdd ->
+            println("Insert data chunk to database")
+            activities.insertMany(activitiesToAdd)
+        }
 
-    collection.createIndex(Indexes.ascending("authorId"))
 }
+
+

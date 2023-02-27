@@ -1,0 +1,8 @@
+### GET activities of author with id
+GET localhost:{{port}}/activities/author/1
+
+### GET activity with id, add author details: execute sequential requests
+GET localhost:{{port}}/activities/0/author
+
+### GET statistics by author id: execute parallel request
+GET localhost:{{port}}/activities/author/1/statistics
