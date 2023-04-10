@@ -1,11 +1,11 @@
 package eeaao
 
-import eeaao.ActivitiesScenario.getActivities
-import eeaao.ActivitiesScenario.http
+import eeaao.Scenario.activitiesScenario
+import eeaao.Scenario.http
 import io.gatling.javaapi.core.Simulation
 
 class ReactorSimulation : Simulation() {
     init {
-        setUp(getActivities(scenario = "Reactor")).protocols(http(8081))
+        setUp(activitiesScenario(mode = "Reactor")).protocols(http(8081))
     }
 }
